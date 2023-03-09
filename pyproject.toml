@@ -6,6 +6,8 @@ authors = ["socar-serena <serena@socar.kr>"]
 
 [tool.poetry.dependencies]
 python = "3.8.10"
+numpy = "^1.24.2"
+pydub = "^0.25.1"
 
 [tool.poetry.dev-dependencies]
 
