@@ -5,7 +5,9 @@ from typing import Tuple
 from datetime import datetime
 
 
-def write_wav_file(filename: str, frames: bytes, n_channels: int, sampwidth: int, frame_rate: int) -> str:
+def write_wav_file(
+    filename: str, frames: bytes, n_channels: int, sampwidth: int, frame_rate: int
+) -> str:
     """wav file을 저장한다."""
 
     chunk_wav_file = wave.open(filename, "wb")
@@ -58,8 +60,12 @@ def main(wav_filename: str, chunk_seconds: int, output_dir: str) -> None:
         frame_rate = wf.getframerate()
 
         for audio_chunk_frames in stream.generate(chunk_seconds=chunk_seconds):
-            chunk_filename = os.path.join(output_dir, f"{datetime.utcnow()}_{wav_filename}")
-            write_wav_file(chunk_filename, audio_chunk_frames, n_channels, sampwidth, frame_rate)
+            chunk_filename = os.path.join(
+                output_dir, f"{datetime.utcnow()}_{wav_filename}"
+            )
+            write_wav_file(
+                chunk_filename, audio_chunk_frames, n_channels, sampwidth, frame_rate
+            )
 
 
 if __name__ == "__main__":
