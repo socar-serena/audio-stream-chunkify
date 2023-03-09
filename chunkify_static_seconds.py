@@ -1,8 +1,9 @@
 import argparse
 import os.path
 import wave
-from typing import Tuple
 from datetime import datetime
+
+from audio_file_stream import AudioFileStream
 
 
 def write_wav_file(
@@ -10,42 +11,13 @@ def write_wav_file(
 ) -> str:
     """wav file을 저장한다."""
 
-    chunk_wav_file = wave.open(filename, "wb")
-    chunk_wav_file.setnchannels(n_channels)
-    chunk_wav_file.setsampwidth(sampwidth)
-    chunk_wav_file.setframerate(frame_rate)
-    chunk_wav_file.writeframes(frames)
-    chunk_wav_file.close()
+    with wave.open(filename, "wb") as wf:
+        wf.setnchannels(n_channels)
+        wf.setsampwidth(sampwidth)
+        wf.setframerate(frame_rate)
+        wf.writeframes(frames)
 
     return filename
-
-
-class AudioFileStream:
-    def __init__(self, wav_filename: str):
-        self._wav_filename = wav_filename
-
-    def __enter__(self) -> Tuple["AudioFileStream", wave.Wave_read]:
-        self._wav_file = wave.open(self._wav_filename, "rb")
-        return self, self._wav_file
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._wav_file.close()
-
-    def generate(self, chunk_seconds: int) -> bytes:
-        """정해진 chunk_seconds에 맞게 음성 스트림을 잘라낸다."""
-
-        _chunk_frames = []
-        data = self._wav_file.readframes(self._wav_file.getframerate())
-
-        while data:
-            data = self._wav_file.readframes(self._wav_file.getframerate())
-            _chunk_frames.append(data)
-
-            if len(_chunk_frames) == chunk_seconds:
-                yield b"".join(_chunk_frames)
-                _chunk_frames = []
-
-        yield b"".join(_chunk_frames)
 
 
 def main(wav_filename: str, chunk_seconds: int, output_dir: str) -> None:
@@ -59,7 +31,9 @@ def main(wav_filename: str, chunk_seconds: int, output_dir: str) -> None:
         sampwidth = wf.getsampwidth()
         frame_rate = wf.getframerate()
 
-        for audio_chunk_frames in stream.generate(chunk_seconds=chunk_seconds):
+        for audio_chunk_frames in stream.generate_by_static_seconds(
+            chunk_seconds=chunk_seconds
+        ):
             chunk_filename = os.path.join(
                 output_dir, f"{datetime.utcnow()}_{wav_filename}"
             )
